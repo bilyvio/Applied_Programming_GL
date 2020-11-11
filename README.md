@@ -9,3 +9,4 @@ $ pip install flask
 7. to run $ gunicorn wsgi:app
 8. visit http://127.0.0.1:8000/api/v1/hello-world-3
 9. to check status enter  $ curl -v -XGET http://localhost:5000/api/v1/hello-world-3
+10. to check python version enter $ which --python in local terminal
