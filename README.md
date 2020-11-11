@@ -1,5 +1,5 @@
 # Lab #4
-1. install your python version with pyenv
+1. install your python version 3.8.1 with pyenv
 1. install and create virtual environment using poetry
 3. add flask 
 $ pip install flask
