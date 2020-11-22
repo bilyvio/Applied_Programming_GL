@@ -1,0 +1,381 @@
+openapi: 3.0.0
+info:
+  description: This is announcement service for sharing your announcements!
+  version: 1.0.0-oas3
+  title: Announcement-service
+  contact:
+    email: bilynskavio@gmail.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: announcement
+    description: Share your announcements!
+    externalDocs:
+      description: Find out more
+      url: 'http://swagger.io'
+  - name: Announservice
+    description: Access to Announcement service orders
+  - name: user
+    description: Operations about user
+    externalDocs:
+      description: For more information about announcement service
+      url: 'http://swagger.io'
+paths:
+  /announcement:
+    get:
+      tags:
+        - announcements
+      summary: searches announcements
+      operationId: searchAnnouncement
+      description: gets an announcement
+      parameters:
+        - in: query
+          name: searchString
+          description: pass an optional search string for looking up announcement
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: skip
+          description: number of records to skip for pagination
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          description: maximum number of records to return
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            maximum: 50
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Announcement'
+        '400':
+          description: bad input parameter
+      security:
+        - announcement_auth:
+            - 'write:announcements'
+            - 'read:announcements'
+            - 'delete:announcement'
+    post:
+      tags:
+        - announcements
+      summary: 'adds an announcement'
+      operationId: addAnnouncement
+      description: Adds an announcement to the system
+      requestBody:
+        $ref: '#/components/requestBodies/Announcement'
+      responses:
+        '201':
+          description: announcement created
+        '400':
+          description: 'invalid input, object invalid'
+        '409':
+          description: an existing announcement already exists
+      security:
+        - announcement_auth:
+            - 'write:announcements'
+            - 'read:announcements'
+            - 'delete:announcement'
+    put:
+      tags:
+        - announcements
+      summary: 'updates an announcement'
+      operationId: updateAnnouncement
+      description: Update an announcement to the system
+      requestBody:
+        $ref: '#/components/requestBodies/Announcement'
+      responses:
+        '201':
+          description: announcement created
+        '400':
+          description: 'invalid input, object invalid'
+        '409':
+          description: an existing announcement already exists
+      security:
+        - announcement_auth:
+            - 'write:announcements'
+            - 'read:announcements'
+            - 'delete:announcement'
+    delete:
+      tags:
+        - announcements
+      summary: 'deletes an announcement'
+      operationId: deleteAnnouncement
+      description: Delete an announcement from the system
+      responses:
+        '201':
+          description: announcement deleted
+        '400':
+          description: 'invalid input, object invalid'
+        '409':
+          description: an existing announcement does not exist
+      security:
+        - announcement_auth:
+            - 'write:announcements'
+            - 'read:announcements'
+            - 'delete:announcement'
+  /announcement/findByStatus:
+    get:
+      tags:
+        - announcements
+      summary: finds announcements by status
+      operationId: findAnnouncementsByStatus
+      description: Multiple status values can be provided with comma separated strings
+      responses:
+        '201':
+          description: announcement found by status
+        '400':
+          description: 'invalid input, object invalid'
+        '409':
+          description: an existing announcement  with status already exist
+      security:
+        - announcement_auth:
+            - 'write:announcements'
+            - 'read:announcements'
+            - 'delete:announcement'
+    delete:
+      tags:
+        - announcements
+      summary: 'delete an announcement by status'
+      operationId: deleteAnnouncementById
+      description: Delete an announcement from the system by Id
+      responses:
+        '200':
+          description: announcement deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Api'
+        '400':
+          description: 'invalid input, object invalid'
+        '409':
+          description: an existing announcement does not exist
+      security:
+        - announcement_auth:
+            - 'write:announcements'
+            - 'read:announcements'
+            - 'delete:announcement'
+  /user:
+    post:
+      tags:
+        - user
+      summary: creates user
+      description: only logged in can do it
+      operationId: createUser
+      responses:
+        default:
+          description: successful operation
+      requestBody:
+        $ref: '#/components/requestBodies/User'
+        
+  /user/login:
+    get:
+      tags:
+        - user
+      summary: Logs user into the system
+      operationId: loginUser
+      parameters:
+        - name: username
+          in: query
+          description: The user name for login
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The password for login in clear text
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          headers:
+            X-Rate-Limit:
+              description: calls per hour allowed by the user
+              schema:
+                type: integer
+                format: int32
+            X-Expires-After:
+              description: date in UTC when token expires
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/json:
+              schema:
+                type: string
+            application/xml:
+              schema:
+                type: string
+        '400':
+          description: Invalid username/password supplied
+  /user/logout:
+    get:
+      tags:
+        - user
+      summary: Logs out current logged in user session
+      operationId: logoutUser
+      responses:
+        default:
+          description: successful operation
+  '/user/{username}':
+    get:
+      tags:
+        - user
+      summary: Get user by user name
+      operationId: getUserByName
+      parameters:
+        - name: username
+          in: path
+          description: The name that needs to be fetched. Use user1 for testing.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid username supplied
+        '404':
+          description: User not found
+    put:
+      tags:
+        - user
+      summary: Updated user
+      description: This can only be done by the logged in user.
+      operationId: updateUser
+      parameters:
+        - name: username
+          in: path
+          description: name that need to be updated
+          required: true
+          schema:
+            type: string
+      responses:
+        '400':
+          description: invalid user
+        '404':
+          description: user does not exist
+      requestBody:
+        $ref: '#/components/requestBodies/User'
+    delete:
+      tags:
+        - user
+      summary: deletes
+      description: only logged in users can do it
+      operationId: deleteUser
+      parameters:
+        - name: username
+          in: path
+          description: name to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        '400':
+          description: invalid user
+        '404':
+          description: user does not exist
+servers:
+  - url: 'https://virtserver.swaggerhub.com/bilyvio/announcementsService2/1.0.0'
+components:
+  requestBodies:
+    Announcement:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Announcement'
+      description: Announcement item to add
+    User:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/requestBodies/User'
+      description: Created user object
+      required: true
+  securitySchemes:
+    announcement_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'http://announcement.swagger.io/oauth/dialog'
+          scopes:
+            'write:announcements': write announcement in your account
+            'read:announcements': read your announcement
+            'delete:announcements': delete your announcement
+    
+  schemas:
+    Announcement:
+      type: object
+      required:
+        - id
+        - title
+        - category
+        - releaseDate
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        name:
+          type: string
+          example: Looking for a job
+        releaseDate:
+          type: string
+          format: date-time
+          example: '2016-08-29T09:12:33.001Z'
+        manufacturer:
+          $ref: '#/components/schemas/Category'
+    Category:
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: Job
+        homePage:
+          type: string
+          format: url
+          example: 'https://www.job.com'
+    User:
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: Violetta Bilynska
+        uid:
+          type: string
+          format: uuid
+          example: fklsadj-fjvnf-ofw-9afjj
+      type: object
+      
+    Api:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
