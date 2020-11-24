@@ -343,6 +343,9 @@ components:
           type: string
           format: date-time
           example: '2016-08-29T09:12:33.001Z'
+        local:
+          type: boolean
+          example: true
         manufacturer:
           $ref: '#/components/schemas/Category'
     Category:
