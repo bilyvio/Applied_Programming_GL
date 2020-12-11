@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  database_for_lab:
+    image: postgres
+    environment:
+      POSTGRES_USER: violetta
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: my_database
+    ports:
+      - 5432:5432
