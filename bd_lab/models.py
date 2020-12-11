@@ -1,5 +1,8 @@
 from app import db
+
 Base = db.Model
+
+
 class Category(db.Model):
     __tablename__ = "category"
 
@@ -15,7 +18,8 @@ class Announcement(db.Model):
     name = db.Column(db.VARCHAR(30))
     releaseDate = db.Column(db.VARCHAR(30))
     local = db.Column(db.Integer)
-    manufacturer_uid = db.Column(db.Integer,db.ForeignKey(Category.uid))
+    location = db.Column(db.VARCHAR(30))
+    manufacturer_uid = db.Column(db.Integer, db.ForeignKey(Category.uid))
     manufacturer = db.relationship("Category")
 
 
@@ -24,3 +28,5 @@ class Users(db.Model):
 
     uid = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.VARCHAR(30))
+    location = db.Column(db.VARCHAR(30))
+
