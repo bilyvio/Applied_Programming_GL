@@ -1,32 +1,63 @@
-from app import db
+import simplejson
+from datetime import datetime
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, Integer, ForeignKey, String, Boolean
+from sqlalchemy.ext.declarative import declarative_base
 
-Base = db.Model
+
+Base = declarative_base()
 
 
-class Category(db.Model):
+class Serialise(object):
+    def _asdict(self):
+        result = simplejson.OrderedDict()
+        for key in self.__mapper__.c.keys():
+            if isinstance(getattr(self, key), datetime):
+                result["x"] = getattr(self, key).timestamp() * 1000
+                result["timestamp"] = result["x"]
+            else:
+                result[key] = getattr(self, key)
+
+        return result
+
+
+class Category(Base, Serialise):
     __tablename__ = "category"
 
-    uid = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.VARCHAR(30))
-    homePage = db.Column(db.VARCHAR(30))
+    uid = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String)
+    homePage = Column(String)
 
 
-class Announcement(db.Model):
+class Announcement(Base, Serialise):
     __tablename__ = "announcement"
 
-    uid = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.VARCHAR(30))
-    releaseDate = db.Column(db.VARCHAR(30))
-    local = db.Column(db.Integer)
-    location = db.Column(db.VARCHAR(30))
-    manufacturer_uid = db.Column(db.Integer, db.ForeignKey(Category.uid))
-    manufacturer = db.relationship("Category")
+    def __init__(self, name, releaseDate, local, location, manufacturer_uid):
+        self.name = name
+        self.releaseDate = releaseDate
+        self.local = local
+        self.location = location
+        self.manufacturer_uid = manufacturer_uid
+
+    uid = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String)
+    releaseDate = Column(String)
+    local = Column(Boolean)
+    location = Column(String)
+    manufacturer_uid = Column(Integer, ForeignKey(Category.uid))
 
 
-class Users(db.Model):
+class User(Base, Serialise):
     __tablename__ = "users"
 
-    uid = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.VARCHAR(30))
-    location = db.Column(db.VARCHAR(30))
+    def __init__(self, name, location, username, password):
+        self.name = name
+        self.location = location
+        self.username = username
+        self.password = password
 
+    uid = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String)
+    location = Column(String)
+    username = Column(String)
+    password = Column(String)
