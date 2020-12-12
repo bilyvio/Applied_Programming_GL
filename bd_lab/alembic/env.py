@@ -1,24 +1,17 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
-from logging.config import fileConfig
-
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
 
 import os
 import sys
+
+from sqlalchemy import engine_from_config, pool
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 ROOT_PATH = os.path.join(current_path, '..')
 sys.path.append(ROOT_PATH)
 
 from models import Base
-from app import engine
 
 target_metadata = Base.metadata
 
@@ -73,7 +66,11 @@ def run_migrations_online():
     and associate a connection with the context.
 
     """
-    connectable = engine
+    connectable = engine_from_config(
+        config.get_section(config.config_ini_section),
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
 
     with connectable.connect() as connection:
         context.configure(
