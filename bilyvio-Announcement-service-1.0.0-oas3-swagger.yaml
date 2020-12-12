@@ -23,6 +23,27 @@ tags:
       url: 'http://swagger.io'
 paths:
   /announcement:
+    post:
+        tags:
+          - announcements
+        summary: 'adds an announcement'
+        operationId: addAnnouncement
+        description: Adds an announcement to the system
+        requestBody:
+          $ref: '#/components/requestBodies/Announcement'
+        responses:
+          '201':
+            description: announcement created
+          '400':
+            description: 'invalid input, object invalid'
+          '409':
+            description: an existing announcement already exists
+        security:
+          - announcement_auth:
+              - 'write:announcements'
+              - 'read:announcements'
+              - 'delete:announcement'
+  '/announcement/{id}':
     get:
       tags:
         - announcements
@@ -30,27 +51,13 @@ paths:
       operationId: searchAnnouncement
       description: gets an announcement
       parameters:
-        - in: query
-          name: searchString
-          description: pass an optional search string for looking up announcement
-          required: false
-          schema:
-            type: string
-        - in: query
-          name: skip
-          description: number of records to skip for pagination
+        - in: path
+          name: id
+          description: id of announcement
+          required: true
           schema:
             type: integer
             format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: maximum number of records to return
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-            maximum: 50
       responses:
         '200':
           description: search results matching criteria
@@ -67,32 +74,20 @@ paths:
             - 'write:announcements'
             - 'read:announcements'
             - 'delete:announcement'
-    post:
-      tags:
-        - announcements
-      summary: 'adds an announcement'
-      operationId: addAnnouncement
-      description: Adds an announcement to the system
-      requestBody:
-        $ref: '#/components/requestBodies/Announcement'
-      responses:
-        '201':
-          description: announcement created
-        '400':
-          description: 'invalid input, object invalid'
-        '409':
-          description: an existing announcement already exists
-      security:
-        - announcement_auth:
-            - 'write:announcements'
-            - 'read:announcements'
-            - 'delete:announcement'
     put:
       tags:
         - announcements
       summary: 'updates an announcement'
       operationId: updateAnnouncement
       description: Update an announcement to the system
+      parameters:
+        - in: path
+          name: id
+          description: id of announcement
+          required: true
+          schema:
+            type: integer
+            format: int32
       requestBody:
         $ref: '#/components/requestBodies/Announcement'
       responses:
@@ -113,50 +108,17 @@ paths:
       summary: 'deletes an announcement'
       operationId: deleteAnnouncement
       description: Delete an announcement from the system
+      parameters:
+        - in: path
+          name: id
+          description: id of announcement
+          required: true
+          schema:
+            type: integer
+            format: int32
       responses:
         '201':
           description: announcement deleted
-        '400':
-          description: 'invalid input, object invalid'
-        '409':
-          description: an existing announcement does not exist
-      security:
-        - announcement_auth:
-            - 'write:announcements'
-            - 'read:announcements'
-            - 'delete:announcement'
-  /announcement/findByStatus:
-    get:
-      tags:
-        - announcements
-      summary: finds announcements by status
-      operationId: findAnnouncementsByStatus
-      description: Multiple status values can be provided with comma separated strings
-      responses:
-        '201':
-          description: announcement found by status
-        '400':
-          description: 'invalid input, object invalid'
-        '409':
-          description: an existing announcement  with status already exist
-      security:
-        - announcement_auth:
-            - 'write:announcements'
-            - 'read:announcements'
-            - 'delete:announcement'
-    delete:
-      tags:
-        - announcements
-      summary: 'delete an announcement by status'
-      operationId: deleteAnnouncementById
-      description: Delete an announcement from the system by Id
-      responses:
-        '200':
-          description: announcement deleted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Api'
         '400':
           description: 'invalid input, object invalid'
         '409':
@@ -371,14 +333,3 @@ components:
           format: uuid
           example: fklsadj-fjvnf-ofw-9afjj
       type: object
-      
-    Api:
-      type: object
-      properties:
-        code:
-          type: integer
-          format: int32
-        type:
-          type: string
-        message:
-          type: string
