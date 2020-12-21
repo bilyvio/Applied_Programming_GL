@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from flask_httpauth import HTTPBasicAuth
 import hashlib
 from models import User, Announcement
-from schemas import Announcement_Schema, User
+from schemas import Announcement_Schema, User_Schema, Update_Announcement_Schema
 
 engine = create_engine("postgresql://violetta:123456@localhost:5432/my_database")
 Session = sessionmaker(bind=engine)
@@ -32,7 +32,7 @@ def register_user():
 @auth.verify_password
 def verify_password(username, password):
     return session.query(User).filter_by(username=username,
-                                         password=hashlib.md5(password.encode()).hexdigest()).first() is not None
+                                                password=hashlib.md5(password.encode()).hexdigest()).first() is not None
 
 
 @app.route('/user/<username>', methods=['GET'])
@@ -73,34 +73,43 @@ def delete_user():
 
 
 @app.route('/add_announcement', methods=['POST'])
+@auth.login_required
 def add_announcement():
     try:
+        user = session.query(User).filter_by(username=auth.current_user()).first()
         announcement = Announcement_Schema().load(request.json)
+        announcement.manufacturer_uid = user.uid
         session.add(announcement)
         session.commit()
         return 'Successful operation', 200
-    except ValidationError:
+    except ValidationError as error:
+        print(error)
         return 'Invalid input', 404
 
 
 @app.route('/announcement/<uid>', methods=['GET'])
+@auth.login_required
 def get_announcement_by_id(uid):
-    announcement = session.query(Announcement).filter_by(uid=uid).first()
+    announcement = session.query(Announcement).filter_by(uid=int(uid)).first()
     if announcement is not None:
         return Announcement_Schema().dump(announcement), 200
     return 'Announcement does not exist', 404
 
 
-@app.route('/announcement/<uid>', methods=['PUT'])
-def update_announcement_by_id(uid):
+@app.route('/announcement', methods=['PUT'])
+@auth.login_required
+def update_announcement_by_id():
     try:
-        query = session.query(Announcement).filter_by(uid=uid)
-        query_first = query.first()
-        announcement = Announcement_Schema().load(request.json)
-        Announcement_Schema().dump(announcement)
-        dictionary = announcement._asdict()
-        dictionary['uid'] = uid
-        query.update(dictionary)
+        user = session.query(User).filter_by(username=auth.current_user()).first()
+        announcement = Update_Announcement_Schema().load(request.json)
+        announcement_up = session.query(Announcement).filter_by(uid=int(announcement.uid)).first()
+        if announcement_up is None:
+            return 'Announcement does not exist', 404
+        if user.uid != announcement_up.manufacturer_uid:
+            return 'Announcement does not belong to user', 409
+        announcement_up.name = announcement.name
+        announcement_up.releaseDate = announcement.releaseDate
+        announcement_up.location = announcement.location
         session.commit()
         return 'Successful operation', 200
     except ValidationError:
@@ -108,16 +117,18 @@ def update_announcement_by_id(uid):
 
 
 @app.route('/announcement/<uid>', methods=['DELETE'])
+@auth.login_required
 def delete_announcement_by_ud(uid):
     try:
-        query = session.query(Announcement).filter_by(uid=uid)
-        query_first = query.first()
-        if query_first is not None:
-            session.delete(query_first)
-            session.commit()
-            return 'Successful operation', 200
-        else:
-            return 'Announcement does not exist', 409
+        user = session.query(User).filter_by(username=auth.current_user()).first()
+        announcement_up = session.query(Announcement).filter_by(uid=int(uid)).first()
+        if announcement_up is None:
+            return 'Announcement does not exist', 404
+        if user.uid != announcement_up.manufacturer_uid:
+            return 'Announcement does not belong to user', 409
+        session.delete(announcement_up)
+        session.commit()
+        return 'Successful operation', 200
     except ValidationError:
         return 'Invalid input', 404
 

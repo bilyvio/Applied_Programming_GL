@@ -32,12 +32,11 @@ class Category(Base, Serialise):
 class Announcement(Base, Serialise):
     __tablename__ = "announcement"
 
-    def __init__(self, name, releaseDate, local, location, manufacturer_uid):
+    def __init__(self, name, releaseDate, local, location):
         self.name = name
         self.releaseDate = releaseDate
         self.local = local
         self.location = location
-        self.manufacturer_uid = manufacturer_uid
 
     uid = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)
@@ -61,3 +60,6 @@ class User(Base, Serialise):
     location = Column(String)
     username = Column(String)
     password = Column(String)
+
+
+
