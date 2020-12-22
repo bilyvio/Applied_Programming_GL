@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from flask_httpauth import HTTPBasicAuth
 import hashlib
 from models import User, Announcement
-from schemas import Announcement_Schema, User_Schema, Update_Announcement_Schema
+from schemas import Announcement_Schema, User_Schema
 
 engine = create_engine("postgresql://violetta:123456@localhost:5432/my_database")
 Session = sessionmaker(bind=engine)
@@ -100,7 +100,7 @@ def get_announcement_by_id(uid):
 def update_announcement_by_id(uid):
     try:
         user = session.query(User).filter_by(username=auth.current_user()).first()
-        announcement = Update_Announcement_Schema().load(request.json)
+        announcement = Announcement_Schema().load(request.json)
         announcement_up = session.query(Announcement).filter_by(uid=int(uid)).first()
         if announcement_up is None:
             return 'Announcement does not exist', 404

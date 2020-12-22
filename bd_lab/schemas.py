@@ -27,12 +27,3 @@ class Announcement_Schema(Schema):
         return Announcement(**data)
 
 
-class Update_Announcement_Schema(Schema):
-    uid = fields.Integer()
-    name = fields.String()
-    releaseDate = fields.String()
-    location = fields.String()
-
-    @post_load
-    def make_announcement(self, data, **kwargs):
-        return Announcement(**data)
