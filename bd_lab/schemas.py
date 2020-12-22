@@ -15,6 +15,8 @@ class User_Schema(Schema):
 
 
 class Announcement_Schema(Schema):
+
+    uid = fields.Integer()
     name = fields.String()
     releaseDate = fields.String()
     local = fields.Boolean()
@@ -26,6 +28,7 @@ class Announcement_Schema(Schema):
 
 
 class Update_Announcement_Schema(Schema):
+    uid = fields.Integer()
     name = fields.String()
     releaseDate = fields.String()
     location = fields.String()

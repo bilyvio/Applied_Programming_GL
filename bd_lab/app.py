@@ -40,7 +40,6 @@ def verify_password(username, password):
 def get_user_by_username(username):
     user = session.query(User).filter_by(username=username).first()
     if user is not None:
-        user.password = None
         return jsonify(user._asdict()), 200
     return 'User does not exist', 404
 
@@ -96,13 +95,13 @@ def get_announcement_by_id(uid):
     return 'Announcement does not exist', 404
 
 
-@app.route('/announcement', methods=['PUT'])
+@app.route('/announcement/<uid>', methods=['PUT'])
 @auth.login_required
-def update_announcement_by_id():
+def update_announcement_by_id(uid):
     try:
         user = session.query(User).filter_by(username=auth.current_user()).first()
         announcement = Update_Announcement_Schema().load(request.json)
-        announcement_up = session.query(Announcement).filter_by(uid=int(announcement.uid)).first()
+        announcement_up = session.query(Announcement).filter_by(uid=int(uid)).first()
         if announcement_up is None:
             return 'Announcement does not exist', 404
         if user.uid != announcement_up.manufacturer_uid:
@@ -116,7 +115,7 @@ def update_announcement_by_id():
         return 'Invalid input', 404
 
 
-@app.route('/announcement/<uid>', methods=['DELETE'])
+@app.route('/delete_announcement/<uid>', methods=['DELETE'])
 @auth.login_required
 def delete_announcement_by_ud(uid):
     try:

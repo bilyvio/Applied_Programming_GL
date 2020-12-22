@@ -4,7 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, ForeignKey, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
-
 Base = declarative_base()
 
 
@@ -38,6 +37,12 @@ class Announcement(Base, Serialise):
         self.local = local
         self.location = location
 
+    def __init__(self, uid, name, releaseDate, location):
+        self.uid = uid
+        self.name = name
+        self.releaseDate = releaseDate
+        self.location = location
+
     uid = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)
     releaseDate = Column(String)
@@ -60,6 +65,3 @@ class User(Base, Serialise):
     location = Column(String)
     username = Column(String)
     password = Column(String)
-
-
-
