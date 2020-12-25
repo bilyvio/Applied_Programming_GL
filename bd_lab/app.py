@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify
 from marshmallow import ValidationError
-from sqlalchemy import create_engine, Boolean
+from sqlalchemy import create_engine, Boolean, MetaData
 from sqlalchemy.orm import sessionmaker
 from flask_httpauth import HTTPBasicAuth
 import hashlib
-from models import User, Announcement
+from models import User, Announcement, Category
 from schemas import Announcement_Schema, User_Schema
 
 engine = create_engine("postgresql://violetta:123456@localhost:5432/my_database")
@@ -14,6 +14,13 @@ session = Session()
 auth = HTTPBasicAuth()
 app = Flask(__name__)
 
+metadata = MetaData()
+# Category.create(engine, checkfirst=False)
+# Announcement.create(engine, checkfirst=False)
+# User.create(engine, checkfirst=False)
+# metadata.drop_all(bind=engine)
+# metadata.create_all(bind=engine)
+# session.commit()
 
 @app.route('/register', methods=['POST'])
 def register_user():
@@ -31,8 +38,10 @@ def register_user():
 
 @auth.verify_password
 def verify_password(username, password):
-    return session.query(User).filter_by(username=username,
-                                                password=hashlib.md5(password.encode()).hexdigest()).first() is not None
+    user = session.query(User).filter_by(username=username,
+                                                password=hashlib.md5(password.encode()).hexdigest()).first()
+    if user:
+        return user
 
 
 @app.route('/user/<username>', methods=['GET'])
@@ -75,9 +84,11 @@ def delete_user():
 @auth.login_required
 def add_announcement():
     try:
-        user = session.query(User).filter_by(username=auth.current_user()).first()
+        # user = session.query(User).filter_by(username=auth.current_user()).first()
+        user = auth.current_user()
+        print(user)
         announcement = Announcement_Schema().load(request.json)
-        announcement.manufacturer_uid = user.uid
+        announcement.owner_uid = user.uid
         session.add(announcement)
         session.commit()
         return 'Successful operation', 200
@@ -99,12 +110,12 @@ def get_announcement_by_id(uid):
 @auth.login_required
 def update_announcement_by_id(uid):
     try:
-        user = session.query(User).filter_by(username=auth.current_user()).first()
+        user = auth.current_user()
         announcement = Announcement_Schema().load(request.json)
-        announcement_up = session.query(Announcement).filter_by(uid=int(uid)).first()
+        announcement_up = session.query(Announcement).get(uid)
         if announcement_up is None:
             return 'Announcement does not exist', 404
-        if user.uid != announcement_up.manufacturer_uid:
+        if user.uid != announcement_up.owner_uid:
             return 'Announcement does not belong to user', 409
         announcement_up.name = announcement.name
         announcement_up.releaseDate = announcement.releaseDate
@@ -119,11 +130,11 @@ def update_announcement_by_id(uid):
 @auth.login_required
 def delete_announcement_by_ud(uid):
     try:
-        user = session.query(User).filter_by(username=auth.current_user()).first()
-        announcement_up = session.query(Announcement).filter_by(uid=int(uid)).first()
+        user = auth.current_user()
+        announcement_up = session.query(Announcement).get(uid)
         if announcement_up is None:
             return 'Announcement does not exist', 404
-        if user.uid != announcement_up.manufacturer_uid:
+        if user.uid != announcement_up.owner_uid:
             return 'Announcement does not belong to user', 409
         session.delete(announcement_up)
         session.commit()
@@ -132,5 +143,5 @@ def delete_announcement_by_ud(uid):
         return 'Invalid input', 404
 
 
-if __name__ == 'main':
-    app.run()
+if __name__ == '__main__':
+    app.run(debug=True)
