@@ -48,7 +48,7 @@ class User(Base, Serialise):
 class Announcement(Base, Serialise):
     __tablename__ = "announcement"
 
-    def __init__(self, name, releaseDate, local, location):
+    def __init__(self, name=None, releaseDate=None, local=None, location=None):
         self.name = name
         self.releaseDate = releaseDate
         self.local = local
