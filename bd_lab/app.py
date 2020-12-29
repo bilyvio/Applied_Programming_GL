@@ -106,14 +106,17 @@ def add_announcement():
 
 
 @app.route('/announcement/<uid>', methods=['GET'])
-@auth.login_required
+@auth.login_required(optional=True)
 def get_announcement_by_id(uid):
     announcement = session.query(Announcement).filter_by(uid=int(uid)).first()
     if announcement is not None:
-        if not announcement.local or announcement.location == auth.current_user().location:
+        if auth.current_user() is None:
+            if not announcement.local:
+                return Announcement_Schema().dump(announcement), 200
+        elif not announcement.local or announcement.location == auth.current_user().location:
             return Announcement_Schema().dump(announcement), 200
-        else:
-            return 'This local announcement is not available to you', 403
+
+        return 'This local announcement is not available to you', 403
     return 'Announcement does not exist', 404
 
 
@@ -131,6 +134,7 @@ def update_announcement_by_id(uid):
         announcement_up.name = announcement.name
         announcement_up.releaseDate = announcement.releaseDate
         announcement_up.location = announcement.location
+        announcement_up.local = announcement.local
         session.commit()
         return 'Successful operation', 200
     except ValidationError:

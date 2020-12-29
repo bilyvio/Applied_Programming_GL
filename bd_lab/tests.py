@@ -1,14 +1,11 @@
 import base64
-from flask import Flask, jsonify
 from flask_testing import TestCase
 import unittest
-from app import app, session, metadata, engine
+from app import app, session, engine
 from sqlalchemy.orm import close_all_sessions
-import hashlib
 from pprint import pprint
 
-
-from models import User, Announcement, Category, Base
+from models import User, Announcement, Base
 
 
 class TestingViews(TestCase):
@@ -16,10 +13,7 @@ class TestingViews(TestCase):
     @classmethod
     def setUpClass(cls):
         Base.metadata.drop_all(bind=engine)
-        # metadata.reflect(bind=engine)
-        # pass
 
-    # creates instance of flask app
     def create_app(self):
         return app
 
@@ -148,6 +142,12 @@ class TestingViews(TestCase):
         res = self.open_with_auth(f'/announcement/{public_post_lviv_id}', 'GET', 'anon', 'qwerty')
         self.assert200(res)
         
+        res = self.client.open(f'/announcement/{public_post_lviv_id}', method='GET')
+        self.assert200(res)
+        
+        res = self.client.open(f'/announcement/{local_post_kyiv_id}', method='GET')
+        self.assert403(res)
+
         res = self.open_with_auth(f'/announcement/2934832', 'GET', 'nstr', 'qwerty')
         self.assert404(res)
 
