@@ -4,7 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, ForeignKey, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
-
 Base = declarative_base()
 
 
@@ -29,22 +28,6 @@ class Category(Base, Serialise):
     homePage = Column(String)
 
 
-class Announcement(Base, Serialise):
-    __tablename__ = "announcement"
-
-    def __init__(self, name, releaseDate, local, location, manufacturer_uid):
-        self.name = name
-        self.releaseDate = releaseDate
-        self.local = local
-        self.location = location
-        self.manufacturer_uid = manufacturer_uid
-
-    uid = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String)
-    releaseDate = Column(String)
-    local = Column(Boolean)
-    location = Column(String)
-    manufacturer_uid = Column(Integer, ForeignKey(Category.uid))
 
 
 class User(Base, Serialise):
@@ -61,3 +44,19 @@ class User(Base, Serialise):
     location = Column(String)
     username = Column(String)
     password = Column(String)
+
+class Announcement(Base, Serialise):
+    __tablename__ = "announcement"
+
+    def __init__(self, name, releaseDate, local, location):
+        self.name = name
+        self.releaseDate = releaseDate
+        self.local = local
+        self.location = location
+
+    uid = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String)
+    releaseDate = Column(String)
+    local = Column(Boolean)
+    location = Column(String)
+    owner_uid = Column(Integer, ForeignKey(User.uid))
